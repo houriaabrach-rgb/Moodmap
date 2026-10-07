@@ -80,6 +80,7 @@ export default function Home() {
   const [sleep, setSleep] = useState("7.5");
   const [selectedActivities, setSelectedActivities] = useState<string[]>(["bewegung"]);
   const [saved, setSaved] = useState(false);
+  const [formError, setFormError] = useState("");
   const entriesRef = useRef(entries);
   const demoRef = useRef(usingDemo);
 
@@ -117,7 +118,15 @@ export default function Home() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const sleepValue = Number(sleep);
-    if (!date || !Number.isFinite(sleepValue) || sleepValue < 0 || sleepValue > 24) return;
+    if (!date) {
+      setFormError("Bitte wähle ein Datum aus.");
+      return;
+    }
+    if (!sleep.trim() || !Number.isFinite(sleepValue) || sleepValue < 0 || sleepValue > 24) {
+      setFormError("Bitte trage eine Schlafdauer zwischen 0 und 24 Stunden ein.");
+      return;
+    }
+    setFormError("");
     saveEntry(createEntry({ date, mood: Number(mood), sleep: sleepValue, activities: selectedActivities }));
   }
 
@@ -175,13 +184,13 @@ export default function Home() {
 
       <div className="mx-auto grid max-w-[1440px] gap-7 px-6 py-8 lg:grid-cols-[380px_minmax(0,1fr)] lg:px-10 lg:py-10">
         <aside>
-          <form onSubmit={handleSubmit} className="sticky top-6 rounded-[28px] border border-border bg-card p-6 shadow-[0_22px_60px_rgba(20,47,42,0.08)]">
+          <form onSubmit={handleSubmit} noValidate className="sticky top-6 rounded-[28px] border border-border bg-card p-6 shadow-[0_22px_60px_rgba(20,47,42,0.08)]">
             <div className="mb-7 flex items-start justify-between gap-4">
               <div><p className="eyebrow">Tagescheck</p><h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Wie war dein Tag?</h1></div>
               <div className="grid size-11 place-items-center rounded-2xl bg-[#e8f5ee] text-[#246b57]"><CalendarDays className="size-5" aria-hidden="true" /></div>
             </div>
             <label className="field-label" htmlFor="entry-date">Datum</label>
-            <Input id="entry-date" type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setDate(event.target.value)} className="mt-2 h-11 rounded-xl bg-background" required />
+            <Input id="entry-date" type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => { setDate(event.target.value); setFormError(""); }} aria-invalid={!date && Boolean(formError)} aria-describedby={formError ? "entry-error" : undefined} className="mt-2 h-11 rounded-xl bg-background" required />
 
             <fieldset className="mt-6">
               <legend className="field-label">Stimmung</legend>
@@ -196,7 +205,7 @@ export default function Home() {
 
             <div className="mt-6">
               <label className="field-label" htmlFor="sleep">Schlafdauer</label>
-              <div className="relative mt-2"><Moon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input id="sleep" type="number" min="0" max="24" step="0.5" value={sleep} onChange={(event) => setSleep(event.target.value)} className="h-11 rounded-xl bg-background pl-10 pr-16" required /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Stunden</span></div>
+              <div className="relative mt-2"><Moon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input id="sleep" type="number" min="0" max="24" step="0.5" value={sleep} onChange={(event) => { setSleep(event.target.value); setFormError(""); }} aria-invalid={Boolean(formError) && (!sleep.trim() || Number(sleep) < 0 || Number(sleep) > 24)} aria-describedby={formError ? "entry-error" : undefined} className="h-11 rounded-xl bg-background pl-10 pr-16" required /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Stunden</span></div>
             </div>
 
             <fieldset className="mt-6">
@@ -210,6 +219,7 @@ export default function Home() {
             </fieldset>
 
             <Button type="submit" size="lg" className="mt-7 h-12 w-full rounded-xl bg-[#245b4e] text-base shadow-[0_10px_24px_rgba(36,91,78,0.2)] hover:bg-[#19473d]">{saved ? <Check className="size-5" /> : <Sparkles className="size-5" />}{saved ? "Gespeichert" : "Tag speichern"}</Button>
+            {formError && <p id="entry-error" role="alert" className="mt-3 rounded-xl bg-[#fff0ef] px-3 py-2 text-sm font-medium text-[#9b3539]">{formError}</p>}
             <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">Ein Eintrag für dasselbe Datum ersetzt den bisherigen.</p>
           </form>
         </aside>
