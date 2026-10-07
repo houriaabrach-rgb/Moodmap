@@ -78,9 +78,11 @@ body {
 button, input { font: inherit; }
 .eyebrow { color: #6a7d75; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .field-label { display: block; color: #39534b; font-size: .875rem; font-weight: 650; }
-.mood-option { display: grid; min-height: 3rem; cursor: pointer; place-items: center; border: 1px solid var(--border); border-radius: .8rem; background: #f8faf9; color: #6c7b76; transition: 160ms ease; }
+.mood-option { display: grid; min-height: 3.65rem; cursor: pointer; place-items: center; border: 1px solid var(--border); border-radius: .8rem; background: #f8faf9; color: #6c7b76; transition: 160ms ease; }
 .mood-option:hover { border-color: #8ab5a5; transform: translateY(-1px); }
 .mood-option-active { border-color: #2f8f72; background: #e7f4ed; color: #1f634f; box-shadow: 0 0 0 3px rgba(47, 143, 114, .10); }
+.mood-face { font-size: 1.75rem; line-height: 1; filter: saturate(.9); transform: translateY(1px); }
+.mood-option-active .mood-face { transform: translateY(1px) scale(1.08); }
 .activity-option { display: flex; min-height: 2.75rem; cursor: pointer; align-items: center; gap: .75rem; border: 1px solid var(--border); border-radius: .85rem; background: #fafcfb; padding: .65rem .8rem; color: #52635d; font-size: .875rem; font-weight: 550; transition: 150ms ease; }
 .activity-option:hover, .activity-option-active { border-color: #9abcae; background: #f0f7f3; color: #285a4c; }
 .insight-card { min-height: 17rem; border: 1px solid rgba(78, 139, 115, .18); border-radius: 1.75rem; padding: 1.6rem; box-shadow: 0 18px 48px rgba(20, 47, 42, .05); }

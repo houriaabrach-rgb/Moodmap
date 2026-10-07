@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Brain, CalendarDays, Check, ChevronRight, Moon, Sparkles } from "lucide-react";
+import { Activity, Brain, CalendarDays, ChevronRight, Moon, Sparkles } from "lucide-react";
 import { CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,7 +21,17 @@ const activities = [
   { id: "draussen", label: "Draußen gewesen" },
   { id: "entspannung", label: "Bewusste Pause" },
 ];
-const moodLabels = ["Sehr schwer", "Schwer", "Okay", "Gut", "Sehr gut"];
+const moods = [
+  { value: 1, label: "Sehr schwer", emoji: "😞" },
+  { value: 2, label: "Schwer", emoji: "🙁" },
+  { value: 3, label: "Okay", emoji: "😐" },
+  { value: 4, label: "Gut", emoji: "🙂" },
+  { value: 5, label: "Sehr gut", emoji: "😄" },
+];
+
+function moodDetails(value: number) {
+  return moods.find((option) => option.value === Math.round(value)) ?? moods[2];
+}
 
 function dateDaysAgo(days: number) {
   const value = new Date();
@@ -195,12 +205,12 @@ export default function Home() {
             <fieldset className="mt-6">
               <legend className="field-label">Stimmung</legend>
               <RadioGroup value={mood} onValueChange={setMood} className="mt-3 grid grid-cols-5 gap-2">
-                {moodLabels.map((label, index) => {
-                  const value = String(index + 1);
-                  return <label key={label} className={`mood-option ${mood === value ? "mood-option-active" : ""}`}><RadioGroupItem value={value} aria-label={label} className="sr-only" /><span className="text-lg font-semibold">{value}</span><span className="sr-only">{label}</span></label>;
+                {moods.map((option) => {
+                  const value = String(option.value);
+                  return <label key={option.value} className={`mood-option ${mood === value ? "mood-option-active" : ""}`} title={option.label}><RadioGroupItem value={value} aria-label={`${option.label}, Stimmung ${option.value} von 5`} className="sr-only" /><span className="mood-face" aria-hidden="true">{option.emoji}</span><span className="sr-only">{option.label}</span></label>;
                 })}
               </RadioGroup>
-              <p className="mt-2 text-center text-sm font-medium text-[#246b57]">{moodLabels[Number(mood) - 1]}</p>
+              <p className="mt-2 text-center text-sm font-medium text-[#246b57]"><span aria-hidden="true">{moodDetails(Number(mood)).emoji}</span> {moodDetails(Number(mood)).label}</p>
             </fieldset>
 
             <div className="mt-6">
@@ -218,7 +228,7 @@ export default function Home() {
               </div>
             </fieldset>
 
-            <Button type="submit" size="lg" className="mt-7 h-12 w-full rounded-xl bg-[#245b4e] text-base shadow-[0_10px_24px_rgba(36,91,78,0.2)] hover:bg-[#19473d]">{saved ? <Check className="size-5" /> : <Sparkles className="size-5" />}{saved ? "Gespeichert" : "Tag speichern"}</Button>
+            <Button type="submit" size="lg" className="mt-7 h-12 w-full rounded-xl bg-[#245b4e] text-base shadow-[0_10px_24px_rgba(36,91,78,0.2)] hover:bg-[#19473d]">{saved ? <span className="text-xl" aria-hidden="true">{moodDetails(Number(mood)).emoji}</span> : <Sparkles className="size-5" />}{saved ? `${moodDetails(Number(mood)).label} gespeichert` : "Tag speichern"}</Button>
             {formError && <p id="entry-error" role="alert" className="mt-3 rounded-xl bg-[#fff0ef] px-3 py-2 text-sm font-medium text-[#9b3539]">{formError}</p>}
             <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">Ein Eintrag für dasselbe Datum ersetzt den bisherigen.</p>
           </form>
@@ -247,7 +257,7 @@ export default function Home() {
             </>
           )}
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">{[{ label: "Ø Stimmung", value: average(entries.map((entry) => entry.mood)).toFixed(1) }, { label: "Ø Schlaf", value: `${average(entries.map((entry) => entry.sleep)).toFixed(1)} Std.` }, { label: "Letzter Eintrag", value: sortedEntries.length ? formatShortDate(sortedEntries.at(-1)!.date) : "Noch keiner" }].map((stat) => <div key={stat.label} className="rounded-2xl border border-border/80 bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{stat.label}</p><p className="mt-1 text-lg font-semibold tracking-[-0.02em]">{stat.value}</p></div>)}</div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">{[{ label: "Ø Stimmung", value: entries.length ? `${moodDetails(average(entries.map((entry) => entry.mood))).emoji} ${average(entries.map((entry) => entry.mood)).toFixed(1)}` : "Noch keine" }, { label: "Ø Schlaf", value: `${average(entries.map((entry) => entry.sleep)).toFixed(1)} Std.` }, { label: "Letzte Stimmung", value: sortedEntries.length ? `${moodDetails(sortedEntries.at(-1)!.mood).emoji} ${moodDetails(sortedEntries.at(-1)!.mood).label} · ${formatShortDate(sortedEntries.at(-1)!.date)}` : "Noch keine" }].map((stat) => <div key={stat.label} className="rounded-2xl border border-border/80 bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{stat.label}</p><p className="mt-1 text-lg font-semibold tracking-[-0.02em]">{stat.value}</p></div>)}</div>
           <div className="mt-6 flex items-center gap-2 text-xs leading-5 text-muted-foreground"><ChevronRight className="size-4 shrink-0" aria-hidden="true" />Deine Daten bleiben in diesem Browser. Ohne Konto werden sie nicht zwischen Geräten übertragen.</div>
         </section>
       </div>
