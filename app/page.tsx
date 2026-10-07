@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Brain, CalendarDays, ChevronRight, Moon, Sparkles } from "lucide-react";
+import { Activity, Brain, CalendarDays, ChevronRight, Lightbulb, Moon, Sparkles } from "lucide-react";
 import { CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,6 +31,47 @@ const moods = [
 
 function moodDetails(value: number) {
   return moods.find((option) => option.value === Math.round(value)) ?? moods[2];
+}
+
+function dailyRecommendation(mood: number, sleep: number) {
+  const lowMood = mood <= 2;
+  const shortSleep = sleep < 7;
+
+  if (lowMood && shortSleep) {
+    return {
+      title: "Heute besonders sanft mit dir umgehen",
+      text: "Wenig Schlaf und eine schwere Stimmung treffen heute zusammen.",
+      tips: [
+        "Plane nur das Wichtigste und mach zwischendurch eine kurze Pause.",
+        "Trink Wasser, geh wenn möglich kurz an die frische Luft und versuche heute früher schlafen zu gehen.",
+        "Sprich mit einer vertrauten Person, wenn die Stimmung anhält oder dich stark belastet.",
+      ],
+    };
+  }
+
+  if (shortSleep) {
+    return {
+      title: "Heute etwas mehr Erholung einplanen",
+      text: "Du hast weniger als sieben Stunden Schlaf eingetragen.",
+      tips: [
+        "Mach heute bewusst kurze Pausen und plane etwas weniger als sonst.",
+        "Vermeide Koffein am späten Nachmittag und versuche heute zur gewohnten Zeit ins Bett zu gehen.",
+      ],
+    };
+  }
+
+  if (lowMood) {
+    return {
+      title: "Ein kleiner Schritt reicht für heute",
+      text: "Deine Stimmung ist heute eher schwer.",
+      tips: [
+        "Wähle eine kleine Sache, die dir oft guttut, etwa einen kurzen Spaziergang oder eine ruhige Pause.",
+        "Sprich mit einer vertrauten Person, wenn die Stimmung anhält oder dich stark belastet.",
+      ],
+    };
+  }
+
+  return null;
 }
 
 function MoodCat({ value, className = "" }: { value: number; className?: string }) {
@@ -115,6 +156,7 @@ export default function Home() {
   const sortedEntries = useMemo(() => [...entries].sort((a, b) => a.date.localeCompare(b.date)), [entries]);
   const insights = useMemo(() => buildInsights(entries), [entries]);
   const hasEnoughData = entries.length >= MIN_ENTRIES;
+  const recommendation = dailyRecommendation(Number(mood), sleep.trim() ? Number(sleep) : Number.NaN);
 
   function persist(next: Entry[]) {
     const sorted = [...next].sort((a, b) => a.date.localeCompare(b.date));
@@ -232,6 +274,17 @@ export default function Home() {
                 })}
               </div>
             </fieldset>
+
+            {recommendation && <aside className="recommendation-card mt-6" aria-live="polite">
+              <div className="recommendation-icon"><Lightbulb className="size-4" aria-hidden="true" /></div>
+              <div>
+                <p className="text-sm font-semibold text-[#6b5115]">{recommendation.title}</p>
+                <p className="mt-1 text-sm leading-5 text-[#795f25]">{recommendation.text}</p>
+                <ul className="recommendation-list mt-3">
+                  {recommendation.tips.map((tip) => <li key={tip}>{tip}</li>)}
+                </ul>
+              </div>
+            </aside>}
 
             <Button type="submit" size="lg" className="mt-7 h-12 w-full rounded-xl bg-[#245b4e] text-base shadow-[0_10px_24px_rgba(36,91,78,0.2)] hover:bg-[#19473d]">{saved ? <MoodCat value={Number(mood)} className="mood-cat-small" /> : <Sparkles className="size-5" />}{saved ? `${moodDetails(Number(mood)).label} gespeichert` : "Tag speichern"}</Button>
             {formError && <p id="entry-error" role="alert" className="mt-3 rounded-xl bg-[#fff0ef] px-3 py-2 text-sm font-medium text-[#9b3539]">{formError}</p>}
